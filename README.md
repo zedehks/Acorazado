@@ -2,6 +2,10 @@
 Proyecto final para Programación 1
 
 TO DO:
-~ Leer y validar el login
-~ Crear toda la lógica del juego ._.
-~ Terminar los menus
+- Leer y validar el login
+- Lógica del juego
+  - Dos tableros
+  - Reubicación de barcos
+- Terminar los menus
+
+
