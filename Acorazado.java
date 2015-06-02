@@ -13,7 +13,7 @@ public class Acorazado
 		boolean win = false;
 		boolean devMode = false;
 
-		System.out.print("\nModo de developer activado? (y/n): ");
+		System.out.print("\nModo de developer activado? (y/n): ");//imprime el tablero oculto
 		char devChoice = scan.next().charAt(0);
 		if (devChoice == 'y')
 			devMode = true;
