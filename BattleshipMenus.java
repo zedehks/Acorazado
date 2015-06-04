@@ -1,6 +1,6 @@
 import java.util.Scanner;
 import java.io.FileWriter;
-import java.io.BufferedWriter;
+//import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.InputMismatchException;
@@ -12,11 +12,14 @@ public class BattleshipMenus
 		int main_seleccion,inicial_seleccion;
 		Scanner scan = new Scanner(System.in);
 		boolean menu_main = true,menu_inicial = true;
+		File savefile = new File("players.sav");
 
 		//String usuarios[] = new String[];
 
+		//outer:
 		System.out.println("\n\n\t\t~~~~~~~~ BattleShip ~~~~~~~~\n");
 		//Menu Inicial
+		menu:
 		while(menu_inicial)
 		{
 			
@@ -36,34 +39,95 @@ public class BattleshipMenus
 
 			switch (inicial_seleccion)
 			{
-				case 1:
+				case 1://login
 					menu_inicial = false;
-					System.out.println("supongamos que el login funciona…");
+					System.out.println("\n\nLogin\n~~~");
+					while(true)
+					{
+
+						System.out.print("\nIngrese su username: ");
+						String user = scan.next();
+						Scanner txt_checker = new Scanner(savefile);
+						boolean login = false;
+					
+
+						while (txt_checker.hasNextLine())
+						{
+							if(user.equals(txt_checker.nextLine()))
+							{
+								System.out.print("\nIngrese su contraseña: ");
+								String pass = "*"+scan.next();
+								if (pass.equals(txt_checker.nextLine()))
+								{
+									System.out.println("Login valido. Bienvenido.\n\n~~~~~~~~~");
+									login = true;
+									break;
+								}
+
+							}
+						}
+
+						if (login)
+							break;
+						else
+							System.out.println("Login inválido");
+					}
+
+
+
+					
+
 					break;
 
-				case 2:
+				case 2://crear jugador nuevo
 					menu_inicial = false;
+					boolean usuario_nuevo = true;
 					String usuario[] = new String[2];
-					System.out.print("\nNombre: ");
-					usuario[0] = scan.next();
+					try 
+					{
+	    	  			//File savefile = new File("players.sav");
+ 	    				if(!savefile.exists())
+ 	    				{
+ 	    					System.out.println("\nArchivo de almacenaje creado.");
+    						savefile.createNewFile();
+    					}
+ 			   		} 
+   	 				catch (IOException e)
+   	 				{
+	     		    	e.printStackTrace();
+					}
+					do
+					{
+						System.out.println("\n\nCrear Jugador Nuevo\n~~~");
+						System.out.print("\nNombre: ");
+						usuario[0] = scan.next();
+						Scanner txt_checker = new Scanner(savefile);
+						while (txt_checker.hasNextLine())
+							{
+								if(usuario[0].equals(txt_checker.nextLine()))
+								{
+									System.out.print("\nUsuario ya existente.");
+									usuario_nuevo = false;
+									break;		
+								}
+								else
+									usuario_nuevo = true;
+							}
+					}while (usuario_nuevo == false);
+
 					System.out.print("\nContraseña: ");
 					usuario[1] = scan.next();
 
 					
 					try 
 					{
-	    	  			File savefile = new File("players.sav");
- 	    				if(!savefile.exists())
- 	    				{
- 	    					System.out.println("Archivo de almacenaje creado.");
-    						savefile.createNewFile();
-    					}
-
     					FileWriter fileWritter = new FileWriter(savefile,true);
-    	      	  		BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-    	     	  		bufferWritter.write(usuario[0]+"\t");
-    	     	  		bufferWritter.write(usuario[1]+"\n");
-    	     	   		bufferWritter.close();
+    	      	  		//BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+    	     	  		fileWritter.write(usuario[0]+"\n");
+    	     	  		fileWritter.write("*"+usuario[1]+"\n_\n");
+    	     	   		fileWritter.close();
+    	     	   		System.out.println("\nJugador nuevo creado.\n\n~~~~~~~~~");
+    	     	   		
 	 
  			   		} 
    	 				catch (IOException e)
@@ -73,10 +137,10 @@ public class BattleshipMenus
 
 					
 
+					inicial_seleccion = 0;
+					continue menu;
 
-					break;
-
-				case 3:
+				case 3://exit
 					System.out.println("bye desde menu_inicial");
 					System.exit(0);
 
