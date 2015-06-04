@@ -13,6 +13,7 @@ public class BattleshipMenus
 		Scanner scan = new Scanner(System.in);
 		boolean menu_main = true,menu_inicial = true;
 		File savefile = new File("players.sav");
+		String user, pass;
 
 		//String usuarios[] = new String[];
 
@@ -40,14 +41,28 @@ public class BattleshipMenus
 			switch (inicial_seleccion)
 			{
 				case 1://login
+
+	    	  			//si no existe savefile...
+ 	    				if(!savefile.exists())
+ 	    				{
+ 	    					System.out.println("\nArchivo de almacenaje no existe.\nCree un jugador nuevo primero.\n-----\n");
+ 	    					menu_inicial = true;
+ 	    					continue menu;
+    					}
+
 					menu_inicial = false;
 					System.out.println("\n\nLogin\n~~~");
 					while(true)
 					{
 
-						System.out.print("\nIngrese su username: ");
-						String user = scan.next();
+						System.out.print("\nIngrese su username (o entre \"cancel\" para cancelar login): ");
+						user = scan.next();
 						Scanner txt_checker = new Scanner(savefile);
+						if (user.equals("cancel"))
+						{
+							menu_inicial = true;
+							continue menu;
+						}
 						boolean login = false;
 					
 
@@ -56,7 +71,7 @@ public class BattleshipMenus
 							if(user.equals(txt_checker.nextLine()))
 							{
 								System.out.print("\nIngrese su contraseña: ");
-								String pass = "*"+scan.next();
+								pass = "*"+scan.next();
 								if (pass.equals(txt_checker.nextLine()))
 								{
 									System.out.println("Login valido. Bienvenido.\n\n~~~~~~~~~");
@@ -81,30 +96,39 @@ public class BattleshipMenus
 
 				case 2://crear jugador nuevo
 					menu_inicial = false;
-					boolean usuario_nuevo = true;
+					boolean usuario_nuevo = true, first_run = false;
 					String usuario[] = new String[2];
-					try 
-					{
-	    	  			//File savefile = new File("players.sav");
- 	    				if(!savefile.exists())
- 	    				{
- 	    					System.out.println("\nArchivo de almacenaje creado.");
-    						savefile.createNewFile();
-    					}
- 			   		} 
-   	 				catch (IOException e)
-   	 				{
-	     		    	e.printStackTrace();
-					}
+					
+
 					do
 					{
 						System.out.println("\n\nCrear Jugador Nuevo\n~~~");
-						System.out.print("\nNombre: ");
-						usuario[0] = scan.next();
+						System.out.print("\nUsername Nuevo: (o entre \"cancel\" para cancelar): ");
+						user = scan.next();
+
+						if (user.equals("cancel"))
+						{
+							menu_inicial = true;
+							continue menu;
+						}
+						try
+						{
+							if(!savefile.exists())
+ 	    					{
+ 	    						//System.out.println("\nArchivo de almacenaje creado.");
+    							savefile.createNewFile();
+    							first_run = true;
+   							}
+   						}
+   						catch (IOException e)
+   	 					{
+	     		    		e.printStackTrace();
+						}
+
 						Scanner txt_checker = new Scanner(savefile);
 						while (txt_checker.hasNextLine())
 							{
-								if(usuario[0].equals(txt_checker.nextLine()))
+								if(user.equals(txt_checker.nextLine()))
 								{
 									System.out.print("\nUsuario ya existente.");
 									usuario_nuevo = false;
@@ -116,16 +140,21 @@ public class BattleshipMenus
 					}while (usuario_nuevo == false);
 
 					System.out.print("\nContraseña: ");
-					usuario[1] = scan.next();
+					pass = scan.next();
 
 					
 					try 
 					{
     					FileWriter fileWritter = new FileWriter(savefile,true);
     	      	  		//BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-    	     	  		fileWritter.write(usuario[0]+"\n");
-    	     	  		fileWritter.write("*"+usuario[1]+"\n_\n");
+    	     	  		fileWritter.write(user+"\n");
+    	     	  		fileWritter.write("*"+pass+"\n_\n");
     	     	   		fileWritter.close();
+    	     	   		if(first_run)
+ 	    				{
+ 	    					System.out.println("\nArchivo de almacenaje creado.");
+    						//savefile.createNewFile();
+   						}
     	     	   		System.out.println("\nJugador nuevo creado.\n\n~~~~~~~~~");
     	     	   		
 	 
@@ -136,7 +165,7 @@ public class BattleshipMenus
 					}
 
 					
-
+					menu_inicial = true;
 					inicial_seleccion = 0;
 					continue menu;
 
