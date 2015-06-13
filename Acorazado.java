@@ -137,8 +137,3 @@ public class Acorazado
 		System.out.println("\nBye.");
 	}
 }
-
-
-		System.out.println("\nBye.");
-	}
-}
