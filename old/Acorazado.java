@@ -23,6 +23,7 @@ public class Acorazado
 
 		do{		
 				//Por ahora todos los abarcos tienen que ingresarse con la variable 'a'
+				System.out.println("Barcos Puestos: "+boatCount);
 				System.out.print("Ingrese la Fila: ");
 				int contador_v = scan.nextInt()-1;
 				System.out.print("Ingrese la Columna: ");
@@ -31,13 +32,13 @@ public class Acorazado
 				char nombre = scan.next().charAt(0);
 
 				if(contador_v>=0 && contador_v<8 && contador_h>=0 && contador_h<8){
-					if(tablero[contador_v][contador_h] == nombre){
-						System.out.print("Posicion Ocupada");
-					}
-					else{
+					if(nombre=='a' || nombre=='e' || nombre=='i' || nombre=='o' || nombre=='u'){
 						tablero[contador_v][contador_h] = nombre;
 						System.out.println("Posicion Disponible y Colocada\n");
 						boatCount++;
+					}
+					else{
+						System.out.print("Posicion invalida\n");
 					}
 			}
 			else{
@@ -90,12 +91,12 @@ public class Acorazado
 			System.out.print("\nEntre numero de fila: ");
 			int fila = scan.nextInt() - 1;
 
-			System.out.print("\nEntre numero de columna: ");
+			System.out.print("\nEntre numero de columna: \n");
 			int columna = scan.nextInt() - 1;	
 
 			
 		
-			if (tablero[fila][columna] == 'a' )
+			if (tablero[fila][columna]=='a'||tablero[fila][columna]=='e'||tablero[fila][columna]== 'i'|| tablero[fila][columna]=='o'|| tablero[fila][columna]== 'u' )
 			{
 				//tablero_visual[fila][columna] = 'x';
 				tablero[fila][columna] = 'H';
@@ -114,9 +115,9 @@ public class Acorazado
 			{
 				for(int contador_h= 0;contador_h< 8; contador_h++)
 				{
-					if (tablero[contador_v][contador_h] == 'a')
+					if (tablero[contador_v][contador_h]=='a' || tablero[contador_v][contador_h]=='e' || tablero[contador_v][contador_h]=='i' || tablero[contador_v][contador_h]=='o' || tablero[contador_v][contador_h]=='u')
 					{
-						win = false;
+						win =false;
 						break;
 					}
 
