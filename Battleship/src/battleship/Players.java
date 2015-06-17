@@ -74,7 +74,7 @@ public class Players
     public boolean createNewPlayer(Scanner scan) throws FileNotFoundException
     {
         boolean usuario_nuevo = true, first_run = false, menu_inicial = false;
-	//String usuario[] = new String[2];
+        //String usuario[] = new String[2];
 
         do
         {

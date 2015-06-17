@@ -116,14 +116,15 @@ public class Battleship
 
                     System.out.println("bye desde menu_main");
                     menu_main = false;
-                    System.exit(0);
-
+                    //continue menu;
+                    break;
                 default:
 
                     System.out.println("\nSelección inválida.\n");
             }
         }
         //fin menu principal
+        
     }
 
 }
