@@ -49,7 +49,9 @@ public class Players
                     password = "*" + scan.next();
                     if (password.equals(txt_checker.nextLine()))
                     {
-                        System.out.println("Login valido. Bienvenido.\n\n~~~~~~~~~");
+                        System.out.println("Login valido. Bienvenido.");
+                        Spiel.pause();
+                        System.out.println("\n\n~~~~~~~~~");
                         login = true;
                         break;
                     }
@@ -62,7 +64,7 @@ public class Players
                 break;
             } else
             {
-                System.out.println("Login inválido");
+                System.out.println("Login inválido\n");
             }
         }
 
@@ -124,9 +126,11 @@ public class Players
             if (first_run)
             {
                 System.out.println("\nArchivo de almacenaje creado.");
+                Spiel.pause();
             }
 
             System.out.println("\nJugador nuevo creado.\n\n~~~~~~~~~");
+            Spiel.pause();
 
         } catch (IOException e)
         {
