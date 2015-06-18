@@ -8,7 +8,7 @@ Achievements!:
 
 TO DO:
 - Lógica del juego:
-  - Reubicación de barcos
+  - (probar que la) Reubicación de barcos (funcione apropiadamente)
 - Terminar el menu principal
 - Implementar puntuación
 - Simplificar las funciones de juego. Siento que son demasiadas funciones
