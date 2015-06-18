@@ -8,10 +8,12 @@ public class Spiel
 
     //Attributes
     public static int winner;
+    public static int difficulty = 4;
     public static int player;//player 1 = 0, player 2 = 1
     public static Boat tableros[][][] = new Boat[2][8][8];
     public static boolean devMode = false;
     public static boolean lose = false;
+    public static boolean mustScramble = false;
 
     //Methods
     public static void game()
@@ -49,6 +51,11 @@ public class Spiel
             attack(scan);//ataca 1, hay un switch adentro, termina aun con 1
 
             switchPlayer();// cambia a 2
+            if (mustScramble)
+            {
+                shuffleTablero();
+            }
+
             //printTablero();//imprime su tablero
             checkIfLose();//revisa si 2 ha perdido
             if (lose == true)// si 2 perdió...
@@ -67,6 +74,10 @@ public class Spiel
             attack(scan);//attaca 2, switch adentro, termina 2
 
             switchPlayer();//cambia a 1
+            if (mustScramble)
+            {
+                shuffleTablero();
+            }
             //printTablero();//imprime su tablero
             checkIfLose();//revisa si 1 ha perdido
             if (lose == true)//si 1 perdió,
@@ -144,7 +155,7 @@ public class Spiel
                 System.out.println("Coordenadas Inválidas");
             }
 
-        } while (boatCount < 5);
+        } while (boatCount < difficulty);
         //return (tablero1);
     }
 
@@ -266,15 +277,11 @@ public class Spiel
         } while (true);
 
         switchPlayer();//cambia jugador a atacado
-        if (tableros[player][fila][columna].boatType.equals("Miss"))
+        tableros[player][fila][columna].getHit();
+        if (tableros[player][fila][columna].isBoat)
         {
-            System.out.println("\nCasilla ya atacada.\n");
-        } else
-        {
-            tableros[player][fila][columna].getHit();
             printTablero();
-            shuffleTablero();
-
+            mustScramble = true;
         }
         switchPlayer();//cambia jugador al atacante
     }
@@ -332,6 +339,8 @@ public class Spiel
     {
         Random rng_jesus = new Random();
         boolean shuffling = true;
+        //int shuffledboats = 0;
+        int shuffle_fila, shuffle_columna;
         for (int fila = 0; fila < 8; fila++)
         {
             for (int columna = 0; columna < 8; columna++)
@@ -340,18 +349,20 @@ public class Spiel
                 {
                     while (shuffling)
                     {
+                       // shuffledboats++;
                         Boat boatCloner = new Boat(tableros[player][fila][columna]);// tableros se vuelve el another
                         tableros[player][fila][columna] = new Boat('~');//rellena el espacio viejo con mar
                         while (shuffling)
                         {
-                            fila = rng_jesus.nextInt(8);
-                            columna = rng_jesus.nextInt(8);
+                            shuffle_fila = rng_jesus.nextInt(8);
+                            shuffle_columna = rng_jesus.nextInt(8);
 
-                            if (!tableros[player][fila][columna].isBoat)
+                            if (tableros[player][shuffle_fila][shuffle_columna].isBoat == false)
                             {
-                                tableros[player][fila][columna] = new Boat(boatCloner);//boatCloner es el another
-                                tableros[player][fila][columna].wasMoved = true;
+                                tableros[player][shuffle_fila][shuffle_columna] = new Boat(boatCloner);//boatCloner es el another
+                                tableros[player][shuffle_fila][shuffle_columna].wasMoved = true;
                                 shuffling = false;
+                                //shuffledboats++;
                                 break;
                             }
                         }
@@ -360,7 +371,26 @@ public class Spiel
                 }
                 //break;
             }
-
+        }
+        mustScramble = false;
+    }
+    
+    public static void setDifficulty(char choice)
+    {
+        switch(choice)
+        {
+            case 'e':
+                difficulty = 5;
+                break;
+            case 'n':
+                difficulty = 4;
+                break;
+            case 'h':
+                difficulty = 2;
+                break;
+            case 'g':
+                difficulty = 1;
+                break;            
         }
     }
 }

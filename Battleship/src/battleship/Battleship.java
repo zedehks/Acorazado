@@ -98,6 +98,9 @@ public class Battleship
                 case 2:
                     //menu_main = false;
                     System.out.println("Configuración");
+                    System.out.print("\nDificultad (Easy,Normal,Hard,Genius:");
+                    char choice = scan.next().toLowerCase().charAt(0);
+                    Spiel.setDifficulty(choice);
                     break;
 
                 case 3:
