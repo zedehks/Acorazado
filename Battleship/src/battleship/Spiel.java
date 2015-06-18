@@ -18,7 +18,6 @@ public class Spiel
     {
 
         Scanner scan = new Scanner(System.in);
-        Random rng_jesus = new Random();
         int isBoat = 0;
         int boatCount = 0;
 
@@ -50,7 +49,7 @@ public class Spiel
             attack(scan);//ataca 1, hay un switch adentro, termina aun con 1
 
             switchPlayer();// cambia a 2
-            printTablero();//imprime su tablero
+            //printTablero();//imprime su tablero
             checkIfLose();//revisa si 2 ha perdido
             if (lose == true)// si 2 perdió...
             {
@@ -68,7 +67,7 @@ public class Spiel
             attack(scan);//attaca 2, switch adentro, termina 2
 
             switchPlayer();//cambia a 1
-            printTablero();//imprime su tablero
+            //printTablero();//imprime su tablero
             checkIfLose();//revisa si 1 ha perdido
             if (lose == true)//si 1 perdió,
             {
@@ -166,6 +165,7 @@ public class Spiel
                     if (tableros[player][contador_v][contador_h].boatType.equals("Miss"))
                     {
                         System.out.print("F");
+                        tableros[player][contador_v][contador_h].boatType = "Mar";
                     } else
                     {
                         if (tableros[player][contador_v][contador_h].boatType.equals("Mar"))
@@ -181,6 +181,8 @@ public class Spiel
                     if (tableros[player][contador_v][contador_h].wasHit == true)
                     {
                         System.out.print("X");
+                        tableros[player][contador_v][contador_h].wasHit = false;
+                        tableros[player][contador_v][contador_h].wasMoved = false;
                     } else
                     {
                         System.out.print("~");
@@ -206,10 +208,10 @@ public class Spiel
                         switch (tableros[player][contador_v][contador_h].boatType)
                         {
                             case "Mar":
-                                System.out.print(" ");
+                                System.out.print("~");
                                 break;
                             case "Miss":
-                                System.out.print("–");
+                                System.out.print("0");
                                 break;
                             default:
                                 System.out.print("H");
@@ -270,6 +272,9 @@ public class Spiel
         } else
         {
             tableros[player][fila][columna].getHit();
+            printTablero();
+            shuffleTablero();
+
         }
         switchPlayer();//cambia jugador al atacante
     }
@@ -319,6 +324,42 @@ public class Spiel
             case 1:
                 player = 0;
                 break;
+
+        }
+    }
+
+    public static void shuffleTablero()
+    {
+        Random rng_jesus = new Random();
+        boolean shuffling = true;
+        for (int fila = 0; fila < 8; fila++)
+        {
+            for (int columna = 0; columna < 8; columna++)
+            {
+                if (tableros[player][fila][columna].isBoat && tableros[player][fila][columna].wasMoved == false)
+                {
+                    while (shuffling)
+                    {
+                        Boat boatCloner = new Boat(tableros[player][fila][columna]);// tableros se vuelve el another
+                        tableros[player][fila][columna] = new Boat('~');//rellena el espacio viejo con mar
+                        while (shuffling)
+                        {
+                            fila = rng_jesus.nextInt(8);
+                            columna = rng_jesus.nextInt(8);
+
+                            if (!tableros[player][fila][columna].isBoat)
+                            {
+                                tableros[player][fila][columna] = new Boat(boatCloner);//boatCloner es el another
+                                tableros[player][fila][columna].wasMoved = true;
+                                shuffling = false;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+                //break;
+            }
 
         }
     }

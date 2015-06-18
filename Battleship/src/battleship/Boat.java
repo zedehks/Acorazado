@@ -8,8 +8,10 @@ public class Boat
 
     public String boatType;
 
+    public boolean isBoat = false;
     public boolean isDead = false;
     public boolean wasHit = false;
+    public boolean wasMoved = false;
 
     //constructors
     public Boat(char boatType)
@@ -19,18 +21,22 @@ public class Boat
             case 'p':
                 this.boatType = "Portaaviones";
                 boatHealth = 5;
+                isBoat = true;
                 break;
             case 'a':
                 this.boatType = "Acorazado";
                 boatHealth = 4;
+                isBoat = true;
                 break;
             case 's':
                 this.boatType = "Submarino";
                 boatHealth = 3;
+                isBoat = true;
                 break;
             case 'd':
                 this.boatType = "Destructor";
                 boatHealth = 2;
+                isBoat = true;
                 break;
             case '~':
                 this.boatType = "Mar";
@@ -39,6 +45,14 @@ public class Boat
 
         }
 
+    }
+    
+    public Boat(Boat another)
+    {
+        this.boatType = another.boatType;
+        this.boatHealth = another.boatHealth;
+        this.isBoat = another.isBoat;
+        this.wasHit = another.wasHit;
     }
 
     //methods
