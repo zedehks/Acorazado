@@ -4,7 +4,7 @@ public class Boat
 {
     //attributes
 
-    private int boatHealth;
+    public int boatHealth;
 
     public String boatType;
 
@@ -41,12 +41,22 @@ public class Boat
             case '~':
                 this.boatType = "Mar";
                 isDead = true;
+                isBoat = false;
+                boatHealth = 0;
                 break;
 
         }
 
     }
-    
+
+    public Boat()
+    {
+        this.boatType = "Mar";
+        this.isDead = true;
+        this.isBoat = false;
+        this.boatHealth = 0;
+    }
+
     public Boat(Boat another)
     {
         this.boatType = another.boatType;
@@ -62,25 +72,33 @@ public class Boat
         {
 
             if (boatHealth > 0)
-            {   
+            {
                 boatHealth -= 1;
                 if (boatHealth < 1)
+                {
+                    boatType = "hundido";
                     isDead = true;
+                    isBoat = false;
+                }
+                
                 else
                     wasHit = true;
-            }
-
-            else if (boatHealth < 1)
+            } else
             {
-                wasHit = false;
+                if (boatHealth < 1)
+                {
+                    wasHit = false;
+                    isDead = true;
+                }
+            }
+        } else
+        {
+            if (boatType.equals("Mar"))
+            {
+                //wasHit = true;
+                boatType = "Miss";
                 isDead = true;
             }
-        } 
-        else if (boatType.equals("Mar"))
-        {
-           //wasHit = true;
-           boatType = "Miss";
-           isDead = true;
         }
 
     }

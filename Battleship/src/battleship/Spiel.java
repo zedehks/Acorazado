@@ -1,39 +1,53 @@
 package battleship;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
+import java.io.File;
+import java.io.FileWriter;
 
 public class Spiel
 {
 
     //Attributes
-    public static int winner;
+    public static int winner = 0;
     public static int difficulty = 4;
     public static int player;//player 1 = 0, player 2 = 1
     public static Boat tableros[][][] = new Boat[2][8][8];
-    public static boolean devMode = false;
+    public static boolean devMode = true;
     public static boolean lose = false;
     public static boolean mustScramble = false;
+    public static Jugador oponentes[] = new Jugador[2];//controla los dos jugadores que juegan
+    public static File gameslog = new File("games.list");
+
+    //1 portaaviones, 1 acorazado, 1 submarino y 2 destructores
+    //                                    P  A  S  D
+    public static int availableBoats[] =
+    {
+        1, 1, 1, 2
+    };
 
     //Methods
-    public static void game()
+    public static void game() throws IOException//el "main", por asi decir
     {
-
+        startGameLog();
+        boolean cancel = false;
         Scanner scan = new Scanner(System.in);
-        int isBoat = 0;
+        int pn = Data.getPlayerNumbers();
+        if (pn == 1)
+        {
+            System.out.println("\nSolo existe un jugador. Cree otro jugador.\n");
+            return;
+        }
         int boatCount = 0;
 
         lose = false;
 
-        System.out.print("\nModo de developer activado? (y/n): ");//imprime el tablero oculto
-        char devChoice = scan.next().charAt(0);
-        if (devChoice == 'y')
-        {
-            devMode = true;
-        } else
-        {
-            devMode = false;
-        }
+        cancel = setPlayers(scan, pn);
+        if(cancel)
+            return;
+
         player = 0;// player 1
         setBoats(scan, boatCount);
         player = 1;//player 2. Confusing? yep :(
@@ -50,20 +64,27 @@ public class Spiel
             switchPlayer();//cambia a 1
             attack(scan);//ataca 1, hay un switch adentro, termina aun con 1
 
-            switchPlayer();// cambia a 2
-            if (mustScramble)
+            if (lose == true)// si se retira...
             {
-                shuffleTablero();
+                return;
             }
 
-            //printTablero();//imprime su tablero
+            switchPlayer();// cambia a 2
+            printTablero();
             checkIfLose();//revisa si 2 ha perdido
             if (lose == true)// si 2 perdió...
             {
                 winner = 1;//gana 1
                 break;
-
             }
+
+            if (mustScramble)
+            {
+                shuffleTablero();
+                cleanBoard();
+            }
+
+            //printTablero();//imprime su tablero
             pause();
 
             player = 1;//turno de player 2
@@ -73,12 +94,13 @@ public class Spiel
             switchPlayer();// cambia a 2
             attack(scan);//attaca 2, switch adentro, termina 2
 
-            switchPlayer();//cambia a 1
-            if (mustScramble)
+            if (lose == true)// si se retira...
             {
-                shuffleTablero();
+                return;
             }
-            //printTablero();//imprime su tablero
+
+            switchPlayer();//cambia a 1
+            printTablero();
             checkIfLose();//revisa si 1 ha perdido
             if (lose == true)//si 1 perdió,
             {
@@ -87,13 +109,29 @@ public class Spiel
             }
             pause();
 
+            if (mustScramble)
+            {
+
+                shuffleTablero();
+                cleanBoard();
+            }
+            //printTablero();//imprime su tablero
+
         } while (lose == false);
         System.out.println("Gana jugador " + winner);
 
+        setWinner();
+        recordGameVictory();
+
     }
 
-    public static void setBoats(Scanner scan, int boatCount)
+    public static void setBoats(Scanner scan, int boatCount)//ponemos los barcos
     {
+        for (int i = 0; i < 3; i++)
+        {
+            availableBoats[i] = 1;
+        }
+        availableBoats[3] = 2;
         boatCount = 0;
         System.out.print("Player " + (player + 1) + ", ingrese las Posiciones de los Barcos\n");
         System.out.println();
@@ -104,6 +142,7 @@ public class Spiel
                 tableros[player][i][j] = new Boat('~');
             }
         }
+        setboat:
         do
         {
 
@@ -123,24 +162,61 @@ public class Spiel
                     switch (nombre)
                     {
                         case "p":
-                            tableros[player][contador_v][contador_h] = new Boat('p');
-                            System.out.println("Posicion Disponible, Portaaviones Colocado\n");
-                            boatCount++;
+                            if (availableBoats[0] > 0)
+                            {
+                                tableros[player][contador_v][contador_h] = new Boat('p');
+                                System.out.println("Posicion Disponible, Portaaviones Colocado\n");
+                                boatCount++;
+                                availableBoats[0] -= 1;
+                            } else
+                            {
+                                System.out.println("Portaaviones ya puesto. Ingrese otro barco.\n");
+                            }
                             break;
                         case "a":
-                            tableros[player][contador_v][contador_h] = new Boat('a');
-                            System.out.println("Posicion Disponible, Acorazado Colocado\n");
-                            boatCount++;
+                            if (availableBoats[1] > 0)
+                            {
+                                tableros[player][contador_v][contador_h] = new Boat('a');
+                                System.out.println("Posicion Disponible, Acorazado Colocado\n");
+                                boatCount++;
+                                availableBoats[1] -= 1;
+                            } else
+                            {
+                                System.out.println("Acorazado ya puesto. Ingrese otro barco.\n");
+                            }
                             break;
                         case "s":
-                            tableros[player][contador_v][contador_h] = new Boat('s');
-                            System.out.println("Posicion Disponible, Submarino Colocado\n");
-                            boatCount++;
+                            if (availableBoats[2] > 0)
+                            {
+                                tableros[player][contador_v][contador_h] = new Boat('s');
+                                System.out.println("Posicion Disponible, Submarino Colocado\n");
+                                boatCount++;
+                                availableBoats[2] -= 1;
+                            } else
+                            {
+                                System.out.println("Submarino ya puesto. Ingrese otro barco.\n");
+                            }
                             break;
                         case "d":
-                            tableros[player][contador_v][contador_h] = new Boat('d');
-                            System.out.println("Posicion Disponible, Destructor Colocado\n");
-                            boatCount++;
+                            if (availableBoats[3] > 0)
+                            {
+                                if (difficulty == 5)
+                                {
+                                    tableros[player][contador_v][contador_h] = new Boat('d');
+                                    System.out.println("Posicion Disponible, Destructor Colocado\n");
+                                    boatCount++;
+                                    availableBoats[3] -= 1;
+                                } else
+                                {
+                                    tableros[player][contador_v][contador_h] = new Boat('d');
+                                    System.out.println("Posicion Disponible, Destructor Colocado\n");
+                                    boatCount++;
+                                    availableBoats[3] = 0;
+                                }
+                            } else
+                            {
+                                System.out.println("Destructores ya puestos. Ingrese otro barco.\n");
+                            }
                             break;
                         default:
                             System.out.print("Barco Inválido\n");
@@ -148,18 +224,18 @@ public class Spiel
                     }
                 } else
                 {
-                    System.out.println("Posición Ocupada");
+                    System.out.println("Posición Ocupada.\n");
                 }
             } else
             {
-                System.out.println("Coordenadas Inválidas");
+                System.out.println("Coordenadas Inválidas.\n");
             }
 
         } while (boatCount < difficulty);
         //return (tablero1);
     }
 
-    public static void printTablero()
+    public static void printTablero()//imprimimos el tablero del usuario activo
     {
         System.out.println("    1 2 3 4 5 6 7 8\n");
 
@@ -171,7 +247,7 @@ public class Spiel
             for (int contador_h = 0; contador_h < 8; contador_h++)
             {
 
-                if (tableros[player][contador_v][contador_h].isDead == true)
+                if (tableros[player][contador_v][contador_h].isBoat == false)
                 {
                     if (tableros[player][contador_v][contador_h].boatType.equals("Miss"))
                     {
@@ -184,7 +260,11 @@ public class Spiel
                             System.out.print("~");
                         } else
                         {
-                            System.out.print("H");
+                            if (tableros[player][contador_v][contador_h].boatType.equals("hundido"))
+                            {
+                                System.out.print("H");
+                                tableros[player][contador_v][contador_h].boatType = "Mar";
+                            }
                         }
                     }
                 } else
@@ -192,73 +272,48 @@ public class Spiel
                     if (tableros[player][contador_v][contador_h].wasHit == true)
                     {
                         System.out.print("X");
-                        tableros[player][contador_v][contador_h].wasHit = false;
-                        tableros[player][contador_v][contador_h].wasMoved = false;
+
                     } else
                     {
-                        System.out.print("~");
+                        if (devMode)
+                        {
+                            switch (tableros[player][contador_v][contador_h].boatType)
+                            {
+                                case "Miss":
+                                    System.out.print("W");
+                                    break;
+                                case "Acorazado":
+                                    System.out.print("A");
+                                    break;
+                                case "Portaaviones":
+                                    System.out.print("P");
+                                    break;
+                                case "Destructor":
+                                    System.out.print("D");
+                                    break;
+                                case "Submarino":
+                                    System.out.print("S");
+                                    break;
+                            }
+                        } else
+                        {
+                            System.out.print("~");
+                        }
                     }
                 }
                 System.out.print(" ");
+
             }
             System.out.println("");
         }
-        if (devMode)
-        {
-            System.out.println();
-            System.out.println("    1 2 3 4 5 6 7 8\n");
 
-            for (int contador_v = 0; contador_v < 8; contador_v++)
-            {
-                System.out.print((contador_v + 1) + "   ");
-
-                for (int contador_h = 0; contador_h < 8; contador_h++)
-                {
-                    if (tableros[player][contador_v][contador_h].isDead)
-                    {
-                        switch (tableros[player][contador_v][contador_h].boatType)
-                        {
-                            case "Mar":
-                                System.out.print("~");
-                                break;
-                            case "Miss":
-                                System.out.print("0");
-                                break;
-                            default:
-                                System.out.print("H");
-                        }
-                    } else
-                    {
-                        switch (tableros[player][contador_v][contador_h].boatType)
-                        {
-                            case "Miss":
-                                System.out.print("W");
-                                break;
-                            case "Acorazado":
-                                System.out.print("A");
-                                break;
-                            case "Portaaviones":
-                                System.out.print("P");
-                                break;
-                            case "Destructor":
-                                System.out.print("D");
-                                break;
-                            case "Submarino":
-                                System.out.print("S");
-                                break;
-                        }
-                    }
-
-                    System.out.print(" ");
-                }
-                System.out.println("");
-            }
-        }
+        System.out.println("Barco(s) restantes: " + getBoatCount() + ".");
     }
 
-    public static void attack(Scanner scan)
+    public static void attack(Scanner scan) throws IOException
     {
         int fila, columna;
+        attack:
         do
         {
             System.out.println("Ataca Player " + (player + 1) + ".");//jugador atacante
@@ -267,6 +322,34 @@ public class Spiel
 
             System.out.print("\nEntre numero de columna: ");
             columna = scan.nextInt() - 1;
+
+            if (fila == -2 && columna == -2)
+            {
+                while (true)
+                {
+                    System.out.print("\n¿Seguro que desea retirarse? Esto contará como una pérdida (y/n): ");
+                    char choice = scan.next().toLowerCase().charAt(0);
+
+                    switch (choice)
+                    {
+                        case 'y':
+                            switchPlayer();
+                            winner = player + 1;
+                            System.out.println("Gana jugador " + winner);
+
+                            setWinner();
+                            recordGameRetire();
+                            lose = true;
+                            return;
+                        case 'n':
+                            continue attack;
+                        default:
+                            System.out.println("\nOpción inválida\n");
+                    }
+                }
+
+            }
+
             if (fila >= 0 && fila < 8 && columna >= 0 && columna < 8)
             {
                 break;
@@ -277,12 +360,20 @@ public class Spiel
         } while (true);
 
         switchPlayer();//cambia jugador a atacado
-        tableros[player][fila][columna].getHit();
-        if (tableros[player][fila][columna].isBoat)
+
+        if (!tableros[player][fila][columna].boatType.equals("Mar") && !tableros[player][fila][columna].boatType.equals("Miss"))
         {
-            printTablero();
+            //printTablero();
+            System.out.println("\n" + tableros[player][fila][columna].boatType + " bombardeado.\n");
             mustScramble = true;
         }
+        if (!tableros[player][fila][columna].boatType.equals("Mar") && !tableros[player][fila][columna].boatType.equals("Miss") && tableros[player][fila][columna].boatHealth == 1)
+        {
+            System.out.println("\n¡" + tableros[player][fila][columna].boatType + " hundido!\n");
+        }
+
+        tableros[player][fila][columna].getHit();
+
         switchPlayer();//cambia jugador al atacante
     }
 
@@ -300,7 +391,6 @@ public class Spiel
                     lose = false;
                     break;
                 }
-
             }
             if (lose == false)
             {
@@ -310,7 +400,7 @@ public class Spiel
     }
 
     //tomado de: http://stackoverflow.com/questions/19870467/how-do-i-get-press-any-key-to-continue-to-work-in-my-java-code
-    public static void pause()
+    public static void pause()//"press enter to continue..."
     {
         System.out.println("Presione \"enter\" para continuar...");
         try
@@ -321,7 +411,7 @@ public class Spiel
         }
     }
 
-    public static void switchPlayer()
+    public static void switchPlayer()//cambia de un jugador activo al otro
     {
         switch (player)
         {
@@ -338,46 +428,72 @@ public class Spiel
     public static void shuffleTablero()
     {
         Random rng_jesus = new Random();
-        boolean shuffling = true;
-        //int shuffledboats = 0;
-        int shuffle_fila, shuffle_columna;
-        for (int fila = 0; fila < 8; fila++)
+        // boolean shuffling = true;
+        int shuffledboats = 0;
+        int boatCount = getBoatCount();
+        int fila, columna;
+        //int shuffle_fila, shuffle_columna;
+        Boat boatCloner[] = new Boat[difficulty];
+        for (fila = 0; fila < 8; fila++)
         {
-            for (int columna = 0; columna < 8; columna++)
+            for (columna = 0; columna < 8; columna++)
             {
-                if (tableros[player][fila][columna].isBoat && tableros[player][fila][columna].wasMoved == false)
+                if (tableros[player][fila][columna].isBoat && tableros[player][fila][columna].isDead == false)
                 {
-                    while (shuffling)
-                    {
-                       // shuffledboats++;
-                        Boat boatCloner = new Boat(tableros[player][fila][columna]);// tableros se vuelve el another
-                        tableros[player][fila][columna] = new Boat('~');//rellena el espacio viejo con mar
-                        while (shuffling)
-                        {
-                            shuffle_fila = rng_jesus.nextInt(8);
-                            shuffle_columna = rng_jesus.nextInt(8);
 
-                            if (tableros[player][shuffle_fila][shuffle_columna].isBoat == false)
-                            {
-                                tableros[player][shuffle_fila][shuffle_columna] = new Boat(boatCloner);//boatCloner es el another
-                                tableros[player][shuffle_fila][shuffle_columna].wasMoved = true;
-                                shuffling = false;
-                                //shuffledboats++;
-                                break;
-                            }
-                        }
+                    boatCloner[shuffledboats] = new Boat(tableros[player][fila][columna]);// tableros se vuelve el another
+                    shuffledboats++;
+                }
+                //tableros[player][fila][columna] = new Boat('~');
+            }
+        }
+
+        for (fila = 0; fila < 8; fila++)
+        {
+            for (columna = 0; columna < 8; columna++)
+            {
+                tableros[player][fila][columna] = new Boat();
+            }
+        }
+
+        shuffledboats = 0;
+
+        while (shuffledboats < boatCount)
+        {
+            for (fila = 0; fila < 8; fila++)
+            {
+                for (columna = 0; columna < 8; columna++)
+                {
+                    int placeboat = rng_jesus.nextInt(4);
+                    if (placeboat == 2 && tableros[player][fila][columna].boatType.equals("Mar"))
+                    {
+
+                        tableros[player][fila][columna] = new Boat(boatCloner[shuffledboats]);//boatCloner es el another
+                        tableros[player][fila][columna].wasMoved = true;
+                        shuffledboats++;
+                    }
+                    if (shuffledboats >= boatCount)
+                    {
+                        break;
                     }
 
                 }
-                //break;
+                if (shuffledboats >= boatCount)
+                {
+                    break;
+                }
+            }
+            if (shuffledboats >= boatCount)
+            {
+                break;
             }
         }
         mustScramble = false;
     }
-    
+
     public static void setDifficulty(char choice)
     {
-        switch(choice)
+        switch (choice)
         {
             case 'e':
                 difficulty = 5;
@@ -390,7 +506,275 @@ public class Spiel
                 break;
             case 'g':
                 difficulty = 1;
-                break;            
+                break;
+            default:
+                System.out.println("\nOpción inválida.\n");
         }
+    }
+
+    public static void cleanBoard()
+    {
+        for (int contador_v = 0; contador_v < 8; contador_v++)
+        {
+            for (int contador_h = 0; contador_h < 8; contador_h++)
+            {
+                tableros[player][contador_v][contador_h].wasHit = false;
+                tableros[player][contador_v][contador_h].wasMoved = false;
+            }
+        }
+    }
+
+    public static int getBoatCount()
+    {
+        int boatCount = 0;
+
+        for (int contador_v = 0; contador_v < 8; contador_v++)
+        {
+            for (int contador_h = 0; contador_h < 8; contador_h++)
+            {
+                if (tableros[player][contador_v][contador_h].isBoat)
+                {
+                    boatCount++;
+                }
+            }
+        }
+
+        return boatCount;
+    }
+
+    public static boolean setPlayers(Scanner scan, int jugadorNumber) throws FileNotFoundException
+    {
+        Data.checkIfLogin();
+        String usuario = "";
+        boolean userNotSame = false;
+        boolean cancel = false;
+        oponentes[0] = new Jugador();
+        oponentes[1] = new Jugador();
+
+        for (int i = 0; i < jugadorNumber; i++)
+        {
+            if (Data.players[i].isLoggedIn == true)
+            {
+                oponentes[0] = new Jugador(Data.players[i]);
+                break;
+            }
+        }
+
+        while (true)
+        {
+            while (userNotSame == false)
+            {
+                System.out.print("\nIngrese el username del oponente con quien desea enfrentarse (o entre \"cancel\" para cancelar: ");
+                usuario = scan.next();
+                if (usuario.equals(oponentes[0].usuario))
+                {
+                    System.out.println("\nNo puede jugar contra sí mismo. Ingrese otro jugador.\n");
+                    userNotSame = false;
+                } else
+                {
+                    if (usuario.equals("cancel"))
+                    {
+                        System.out.println("\nJuego Cancelado.\n");
+                        cancel = true;
+                        return cancel;
+                    } else
+                    {
+                        break;
+                    }
+                }
+
+            }
+
+            for (int number = 0; number < jugadorNumber; number++)
+            {
+                if (usuario.equals(Data.players[number].usuario))
+                {
+                    System.out.println("Usuario existente. Iniciando jugador 2...");
+                    oponentes[1] = new Jugador(Data.players[number]);
+                    return cancel;
+                }
+            }
+            System.out.println("\nUsuario inválido. Intente nuevamente.\n");
+            userNotSame = false;
+            
+        }
+    }
+
+    public static void setWinner() throws IOException
+    {
+        if (winner == 1)
+        {
+            System.out.println("3 puntos sumados a score del ganador");
+            oponentes[0].puntos += 3;
+
+            for (int i = 0; i < Data.players.length; i++)
+            {
+                if (oponentes[0].usuario.equals(Data.players[i].usuario))
+                {
+                    Data.players[i] = new Jugador();
+                    Data.players[i] = new Jugador(oponentes[0]);
+                    Data.cleanSaveFile();
+                    for (int j = 0; j < Data.players.length; j++)
+                    {
+                        Data.writeToFile(Data.players[j]);
+                    }
+                }
+            }
+
+        } else
+        {
+            System.out.println("3 puntos sumados a score del ganador");
+            oponentes[1].puntos += 3;
+
+            for (int i = 0; i < Data.players.length; i++)
+            {
+                if (oponentes[1].usuario.equals(Data.players[i].usuario))
+                {
+                    Data.players[i] = new Jugador();
+                    Data.players[i] = new Jugador(oponentes[1]);
+                    Data.cleanSaveFile();
+                    for (int j = 0; j < Data.players.length; j++)
+                    {
+                        Data.writeToFile(Data.players[j]);
+                    }
+                }
+            }
+        }
+
+    }
+
+    public static void setTutorialMode(char choice)
+    {
+        switch (choice)
+        {
+            case 't':
+                devMode = true;
+                break;
+
+            case 'a':
+                devMode = false;
+                break;
+            default:
+                System.out.println("\nOpción inválida.\n");
+        }
+    }
+
+    public static void startGameLog() throws IOException
+    {
+        if (!gameslog.exists())
+        {
+            gameslog.createNewFile();
+        }
+    }
+
+    public static void recordGameVictory() throws IOException
+    {
+        try
+        {
+            try (FileWriter logwriter = new FileWriter(gameslog, true))
+            {
+                if (winner == 1)
+                {
+                    logwriter.write(oponentes[0].usuario + " venció a " + oponentes[1].usuario + " en dificultad " + victoryDifficulty() + ".\n");
+                } else
+                {
+                    if (winner == 2)
+                    {
+                        logwriter.write(oponentes[1].usuario + " venció a " + oponentes[0].usuario + " en dificultad " + victoryDifficulty() + ".\n");
+                    }
+                }
+            }
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static void recordGameRetire() throws IOException
+    {
+        try
+        {
+            try (FileWriter logwriter = new FileWriter(gameslog, true))
+            {
+                if (winner == 1)
+                {
+                    logwriter.write(oponentes[1].usuario + " se retiró, dejando como ganador a " + oponentes[0].usuario + ".\n");
+                } else
+                {
+                    if (winner == 2)
+                    {
+                        logwriter.write(oponentes[0].usuario + " se retiró, dejando como ganador a " + oponentes[1].usuario + ".\n");
+                    }
+                }
+            }
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static String victoryDifficulty()
+    {
+        String dificultad_impresa = "";
+        switch (difficulty)
+        {
+            case 5:
+                dificultad_impresa = "Easy";
+                break;
+            case 4:
+                dificultad_impresa = "Normal";
+                break;
+            case 2:
+                dificultad_impresa = "Hard";
+                break;
+            case 1:
+                dificultad_impresa = "Genius";
+                break;
+
+        }
+        return dificultad_impresa;
+    }
+
+    public static void printTop10() throws FileNotFoundException
+    {
+        if (!gameslog.exists())
+        {
+            System.out.println("\nNo se han jugado juegos todavía.\n");
+            return;
+        }
+        Scanner logreader = new Scanner(gameslog);
+        int j = 0;
+
+        while (logreader.hasNextLine())
+        {
+
+            logreader.nextLine();
+            j++;
+        }
+        String games[] = new String[j];
+        // System.out.println(j + " lines");
+        logreader = new Scanner(gameslog);
+        for (int i = j - 1; i >= 0; j--)
+        {
+            while (logreader.hasNextLine())
+            {
+                games[i] = logreader.nextLine();
+                //System.out.println(i+" : "+ games[i]);
+                i--;
+                //logreader.nextLine();
+            }
+        }
+        try
+        {
+            //System.out.println("~~~");
+            for (int i = 0; i < 10; i++)
+            {
+                System.out.println((i + 1) + " : " + games[i]);
+            }
+        } catch (ArrayIndexOutOfBoundsException e)
+        {
+            System.out.print("");
+        }
+
     }
 }
